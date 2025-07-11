@@ -1,0 +1,583 @@
+---
+title: "Crisis Watch: What Happens Before It Happens?"
+subtitle: "Exploring Early Warning Indicators Across Global Economic Shocks (1997 and 2008)"
+author: "Mohamed Bakkali"
+date: "June 11, 2025"
+output: 
+  html_document:
+    toc: true
+    toc_float: true 
+    toc_depth: 2
+    number_sections: true
+    theme: cosmo
+---
+
+# **Introduction**
+
+Understanding how to predict major economic crises before they happen is a key challenge for economists, policymakers, and businesses. In recent decades, the world has experienced several severe financial shocks, such as the Asian Financial Crisis (1997–98) and the Global Financial Crisis (2008), both of which had widespread effects on growth, employment, and financial stability worldwide.
+
+The goal of this project is to investigate which macroeconomic indicators can serve as early warning signals for such crises. By focusing on data visualizations and dashboards, this project aims to make it easier to spot the warning signs that often appear in key economic variables before a crisis hits.
+
+**Why Focus on Macro Indicators?**
+
+Many studies and central banks have shown that certain macroeconomic indicators—such as rapid private credit growth, rising asset prices, or changes in current account balances—often provide early signals of financial distress. For example, Private sector credit booms and increasing money market rates have often preceded banking and currency crises in developed countries *(Babecký et al.,2012)*.
+
+Other example, are the quity prices and the output gap (the difference between actual and potential GDP) are strong leading indicators, especially in advanced economies *(Chen & Svirydzenka, 2021)*.
+
+Moreover, Composite indicators—which combine several macro and financial variables—are more effective at predicting systemic crises than relying on any single indicator alone *(Lo Duca & Peltonen, 2011)*.
+
+This paper builds on these findings by focusing on macroeconomic indicators that are simple to track and visualize. Using dashboards, the paper will display and compare Trends in GDP growth, and indicators as Private sector credit, monetary policy, balances acoount and others.
+
+By visualizing how these indicators evolved in the years leading up to both the Asian and Global Financial Crises, we can be able to answer questions as **Which indicators gave the clearest warning signs?   Are there patterns that repeat across different crises?   How might monitoring these variables help us prevent or prepare for the next crisis?**
+
+Detecting early warning signals is not just an academic exercise. If policymakers and analysts can spot dangerous trends in time, they can take action to reduce risks and limit the impact of future crises. Interactive dashboards make it easier for anyone as students, analysts, or decision makers to explore and understand these patterns.
+
+By analyzing both emerging-market (Asian Crisis) and advanced-economy (Global Financial Crisis) episodes, this study aims to uncover whether different economies exhibit similar warning patterns or whether early signals are context-specific. This cross crisis comparison enhances the robustness of any lessons drawn.
+
+In this study, we present a comparative dashboard-based analysis of macroeconomic indicators leading up to the Asian and Global Financial Crises. This includes a summary table of key indicator performance to assess their predictive power
+
+***GDP Growth Over Time***
+
+To provide a global perspective and set the context for our analysis, we begin by examining the evolution of GDP growth across regions and over time. This overview helps us identify broad economic patterns and turning points that may signal rising vulnerabilities before a crisis emerges.
+
+
+```{r gdp-growth-plot, echo=FALSE, message=FALSE, warning=FALSE}
+
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(readxl)
+
+gdp_data <- read_excel("gdp_growth.xlsx")
+
+year_cols <- names(gdp_data)[grepl("^\\d{4}$", names(gdp_data))]
+
+gdp_long <- gdp_data |>
+  pivot_longer(
+    cols = all_of(year_cols),
+    names_to = "year",
+    values_to = "gdp_growth"
+  ) |>
+  mutate(
+    year = as.numeric(year),
+    gdp_growth = as.numeric(gdp_growth)
+  )
+
+crisis_years <- c(1997, 1998, 2001, 2008, 2011.5)
+
+ggplot(gdp_long, aes(x = year, y = gdp_growth, color = `Country Name`)) +
+  geom_line(linewidth = 1) +
+  geom_vline(xintercept = crisis_years, color = "red", linetype = "dashed") + scale_x_continuous(breaks = seq(1991, 2023, by = 2)) + 
+  labs(
+    title = "GDP Growth Over Time with Crisis Periods",
+    x = "Year",
+    y = "GDP Growth (%)",
+    color = "Country"
+  ) +
+  theme_minimal()
+
+```
+
+
+# Part 1: Asian Crisis 1997–98
+
+blaablaaa blaaa
+
+## Domestic credit to private sector
+
+```{r credit to private sector-plot, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(stringr)
+
+credit_data <- read_excel("Credit to private sector.xlsx")
+
+year_cols <- names(credit_data)[grepl("^\\d{4}$", names(credit_data))]
+
+
+credit_long <- credit_data |>
+  pivot_longer(
+    cols = all_of(year_cols),
+    names_to = "year",
+    values_to = "credit"
+  ) |>
+  mutate(
+    year = as.numeric(year),
+    credit = as.numeric(credit),
+    `Country Name` = str_trim(str_to_title(`Country Name`))  # clean name
+  ) |>
+  filter(year >= 1985, year <= 2023) |>
+  drop_na(credit)
+
+
+credit_world <- credit_long |> filter(`Country Name` == "World")
+credit_countries <- credit_long |> filter(`Country Name` != "World")
+
+ggplot() +
+  
+  geom_col(
+    data = credit_countries,
+    aes(x = factor(year), y = credit, fill = `Country Name`),
+    position = "dodge"
+  ) +
+  
+  geom_line(
+    data = credit_world,
+    aes(x = factor(year), y = credit, group = 1),
+    color = "red",
+    linewidth = 1.2
+  ) +
+  scale_x_discrete(breaks = as.character(seq(1985, 2023, by = 2))) +
+  labs(
+    title = "Credit to Private Sector (1985–2023)",
+    x = "Year",
+    y = "Credit (% of GDP)",
+    fill = "Country"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```
+
+
+## Official Exchange Rates
+
+```{r Official Exchange rate-plot, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+library(readxl)
+library(ggplot2)
+library(tidyverse)
+
+
+exchange_data <- read_excel("Official Exchange rates.xlsx")
+
+year_cols <- names(exchange_data)[grepl("^\\d{4}$", names(exchange_data))]
+
+exchange_long <- exchange_data %>%
+  pivot_longer(
+    cols = all_of(year_cols),
+    names_to = "year",
+    values_to = "exchange_rate"
+  ) %>%
+  mutate(
+    year = as.numeric(year),
+    exchange_rate = as.numeric(exchange_rate),
+    `Country Name` = str_trim(str_to_title(`Country Name`))
+  ) %>%
+  drop_na(exchange_rate)
+
+selected_countries <- c("Indonesia", "Japan", "Malaysia", "Philippines", "Thailand")
+
+exchange_filtered <- exchange_long %>%
+  filter(
+    `Country Name` %in% selected_countries,
+    year >= 1981,
+    year <= 2003
+  )
+
+ggplot(exchange_filtered, aes(x = year, y = exchange_rate)) +
+  geom_line(color = "steelblue") +
+  geom_vline(xintercept = 1998, color = "red", linetype = "dashed", linewidth = 1)+geom_vline(xintercept = 1997, color = "red", linetype = "dashed", linewidth = 1) +
+  facet_wrap(~`Country Name`, ncol = 2, scales="free_y") +
+  scale_x_continuous(breaks = seq(1981, 2003, by = 3)) +
+  labs(
+    title = "Official Exchange Rate (1975-2005)",
+    subtitle = "With 1997 Asian Crisis Indicator",
+    x = "Year",
+    y = "Exchange Rate (Local Currency per USD)"
+  ) +
+  theme_minimal() +
+  theme(strip.text = element_text(face = "bold"), 
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 8), panel.spacing = unit(1, "lines"))
+
+
+
+
+
+```
+
+## Assian current balance
+
+```{r Assian current balance, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+library(readxl)
+library(tidyverse)
+library(scales)
+library(ggplot2)
+
+data <- read_excel("current account balance.xlsx")
+
+year_cols <- names(data)[grepl("^\\d{4}$", names(data))]
+
+
+data_long <- data |>
+  pivot_longer(
+    cols = all_of(year_cols),
+    names_to = "year",
+    values_to = "current"
+  ) |>
+  mutate(
+    year = as.numeric(year),
+    balance = as.numeric(current),
+    `Country Name` = str_trim(str_to_title(`Country Name`))
+  ) |>
+  drop_na(current)
+
+selected_countries <- c("Indonesia","Malaysia", "Philippines","Thailand")
+
+filtered_data <- data_long |>
+  filter(
+    `Country Name` %in% selected_countries,
+    year >= 1985,
+    year <= 2000
+  )
+
+arrow_data <- filtered_data |>
+  filter(`Country Name` == "Thailand", year %in% c(1987, 1996))
+
+
+ggplot(filtered_data, aes(x = year, y = balance, fill = `Country Name`)) +
+  geom_area(position = "stack", alpha = 0.8) +
+  geom_hline(yintercept = 0, color = "yellow", linewidth = 1) +
+  geom_vline(xintercept = 1997.5, color = "red", linetype = "dashed", linewidth = 1.2) +
+  annotate("segment",
+           x = arrow_data$year[1],   # 1985
+           xend = arrow_data$year[2], 
+           y = arrow_data$balance[1], 
+           yend = arrow_data$balance[2],
+           color = "black",
+           arrow = arrow(length = unit(0.3, "cm"), type = "closed")) +
+  
+  labs(
+    title = "Current Account Balance (1985–2000)",
+    subtitle = "Selected Southeast Asian Countries with 1997 Crisis Marker",
+    x = "Year",
+    y = "BoP",
+    fill = "Country"
+  ) +
+  scale_x_continuous(breaks = seq(1985, 2000, by = 2)) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    strip.text = element_text(face = "bold")
+  ) + scale_y_continuous(labels=label_number(scale = 1e-9, suffix = "B"))
+
+```
+
+### Current Account Balance - Deficits pre-crisis – Table Summary
+
+```{r Assian current balance Table, echo=FALSE,fig.align='center',out.width='80%',message=FALSE, warning=FALSE}
+
+
+library(readxl)
+library(tidyverse)
+library(ggpubr)
+library(ggplot2)
+
+data <- read_excel("current account balance.xlsx")
+
+year_cols <- names(data)[grepl("^\\d{4}$", names(data))]
+
+data_long <- data |>
+  pivot_longer(
+    cols = all_of(year_cols),
+    names_to = "year",
+    values_to = "balance"
+  ) |>
+  mutate(
+    year = as.numeric(year),
+    balance = as.numeric(balance),
+    `Country Name` = str_trim(str_to_title(`Country Name`))
+  ) |>
+  drop_na(balance)
+
+
+countries <- c("Thailand", "Indonesia", "Malaysia", "Philippines")
+
+filtered_data <- data_long |>
+  filter(
+    `Country Name` %in% countries,
+    year >= 1987,
+    year <= 2000
+  )
+
+summary_table <- filtered_data |>
+  group_split(`Country Name`) |>
+  map_dfr(function(df) {
+    country <- unique(df$`Country Name`)
+
+    df_8796 <- df |> filter(year <= 1996)
+    
+    # Trend
+    slope <- coef(lm(balance ~ year, data = df_8796))[2]
+    trend <- ifelse(slope < 0, "⬇️ decreasing", "⬆️ increasing")
+    
+    # Peak deficit year
+    peak_year <- df$year[which.min(df$balance)]
+    
+    # Reversal test
+    value_1996 <- df$balance[df$year == 1996]
+    value_2000 <- df$balance[df$year == 2000]
+    reversed <- ifelse(value_2000 > value_1996, "✅ Yes", "❌ No")
+    
+    # crisis signql
+    crisis_signal <- if (value_1996 < 0 && value_2000 > value_1996) "✅ Yes" else "🟥 No"
+    
+    tibble(
+      Country = country,
+      `Trend (1987–1996)` = trend,
+      `Peak Deficit Year` = peak_year,
+      `Reversal After Crisis` = reversed,
+      `Crisis Signal` = crisis_signal
+    )
+  })
+
+library(knitr)  
+
+knitr::kable(summary_table, caption = "Current Account Crisis Summary Table")
+
+
+summary_table_plot <- summary_table |>
+  mutate(row_text = paste0(
+    "Trend: ", `Trend (1987–1996)`, "\n",
+    "Peak Year: ", `Peak Deficit Year`, "\n",
+    "Reversal: ", `Reversal After Crisis`, "\n",
+    "Crisis Signal: ", `Crisis Signal`
+  ))
+
+```
+
+
+Comment about table and conclusion
+
+# Global Crisis 2008
+
+## Credit non financial sector
+
+Table plot : Animmation
+
+bla blaa blaa with plot animmated
+
+```{r Annimated, echo=FALSE, message=FALSE, warning=FALSE}
+
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(gganimate)
+library(lubridate)
+library(gifski)
+
+credit_data <- read_excel("credit non financial sector.xlsx") |>
+  rename(
+    period = 1,
+    credit = 2
+  ) |>
+  mutate(
+    period = as.Date(period),
+    credit = as.numeric(credit)
+  ) |>
+  arrange(period) |>
+  filter(!is.na(period), !is.na(credit))
+
+#########
+p <- ggplot(credit_data, aes(x = period, y = credit)) +
+  geom_line(color = "steelblue", linewidth = 1.2) +
+  geom_point(color = "steelblue", size = 1.8) +
+  labs(
+    title = "Credit to Non-Financial Sector",
+    subtitle = "Animated with 2008 Crisis Marker",
+    x = "Period",
+    y = "Quarter-over-Quarter Change (%)"
+  ) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  geom_vline(xintercept = as.Date("2008-09-30"), color = "red", linetype = "dashed", linewidth = 1)
+
+
+animated_plot <- p + transition_reveal(period) + labs(
+  title = 'Credit Non Financial Sector',
+  subtitle = 'Animated with 2008 Crisis Marker')
+
+
+animate(animated_plot, fps = 10, width=800, heigh= 500, renderer= gifski_renderer())
+
+anim_save(animated_plot, filename= "credit non financial sector.gif", nframes= 200, fps = 10, width= 800, height= 600, renderer= gifski_renderer())
+
+```
+
+## Residantial Price Index in US
+
+```{r Residential Price Index, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+library(readxl)
+library(dplyr)    
+library(ggplot2) 
+library(zoo)
+library(scales) 
+
+# Load data
+price_data <- read_excel("Residential price index.xlsx")
+
+# Clean and format
+price_data <- price_data |>
+  rename(
+    period = 1,
+    index = 2
+  ) |>
+  mutate(
+    period = as.Date(period),  # Ensure it's a Date
+    index = as.numeric(index)
+  ) |>
+  arrange(period) |>
+  mutate(
+    ma_10yr = zoo::rollmean(index, k = 40, fill = NA, align = "center")
+  )
+
+# Plot
+ggplot(price_data, aes(x = period)) +
+  geom_point(aes(y = index), color = "darkblue", size = 1.2, alpha = 0.6) +
+  geom_line(aes(y = ma_10yr), color = "red", size = 1.1, linetype = "longdash") +
+  scale_x_date(
+    breaks = date_breaks("5 years"),
+    labels = date_format("%Y"),
+    expand = c(0.01, 0.01)
+  ) +
+  labs(
+    title = "Residential Price Index with 10-Year Moving Average",
+    x = "Year",
+    y = "Price Index",
+    caption = "Source: Residential price index.xlsx"
+  ) +
+  theme_minimal(base_size = 13)
+
+```
+
+
+## Current Account Balance - Bar chart
+
+
+```{r Diverging Bar Plot, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width='90%'}
+
+
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+library(tidyr)
+library(scales)
+
+data <- read_excel("current account balance.xlsx")
+
+year_cols <- names(data)[grepl("^\\d{4}$", names(data))]
+
+
+data_long <- data |>
+  pivot_longer(
+    cols = all_of(year_cols),
+    names_to = "year",
+    values_to = "balance"
+  ) |>
+  mutate(
+    year = as.numeric(year),
+    balance = as.numeric(balance),
+    `Country Name` = str_trim(str_to_title(`Country Name`))
+  ) |>
+  filter(
+    `Country Name` %in% c("United States", "United Kingdom", "Spain", "Greece"),
+    year >= 1991,
+    year <= 2024
+  ) |>
+  drop_na(balance)
+
+# Create diverging bar plot
+ggplot(data_long, aes(x = factor(year), y = balance, fill = balance > 0)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  facet_wrap(~`Country Name`, ncol = 2, scales= "free_y") +
+  geom_vline(xintercept = which(levels(factor(data_long$year)) == "2008"), 
+             color = "red", linetype = "dashed", linewidth = 1.2) +
+  scale_fill_manual(values = c("TRUE" = "#2ECC71", "FALSE" = "#E74C3C")) +
+  labs(
+    title = "Current Account Balance (1991–2024)",
+    subtitle = "Highlighting Divergence Around the 2008 Crisis",
+    x = "Year",
+    y = "Balance (% of GDP)"
+  ) +
+  scale_x_discrete(breaks = seq(1991, 2024, by = 3)) + scale_y_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale())) +
+
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    strip.text = element_text(face = "bold")
+  )
+```
+
+
+## centtral bank policy US
+
+```{r Step Plot Policy Rate, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width='80%'}
+
+
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+
+policy_data <- read_excel("Central bank policy rates.xlsx") |>
+  rename(
+    period = 1,
+    rate = 2
+  ) |>
+  mutate(
+    period = as.Date(period),
+    rate = as.numeric(rate)
+  ) |>
+  arrange(period) |>
+  filter(!is.na(period), !is.na(rate)) |>
+  distinct(period, .keep_all = TRUE)
+
+ggplot(policy_data, aes(x = period, y = rate)) +
+  geom_step(color = "blue", linewidth = 1.2) +
+  geom_vline(xintercept = as.Date("2008-09-15"), color = "red", linetype = "dashed", linewidth = 1) +
+  annotate("text",
+           x = as.Date("2008-09-15"),
+           y = max(policy_data$rate, na.rm = TRUE),
+           label = "Crisis",
+           vjust = -1, hjust = 0,
+           color = "red", fontface = "bold", size = 2) +
+  labs(
+    title = "US Central Bank Policy Rate (Daily)",
+    subtitle = "Stair-Step Plot with 2008 Crisis Marker",
+    x = "Date",
+    y = "Interest Rate (%)"
+  ) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+
+# Conclusion
+
+
+
+
+
+
+
+
+
+
+
+
+
+

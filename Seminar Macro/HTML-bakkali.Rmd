@@ -1,0 +1,423 @@
+---
+title: "Crisis Watch: What Happens Before It Happens?"
+subtitle: "Exploring Early Warning Indicators Across Global Economic Shocks (1980–2024)"
+author: "Mohamed Bakkali"
+date: "June 12, 2025"
+output: 
+  html_document:
+    toc: true
+    toc_float: true 
+    toc_depth: 2
+    number_sections: true
+    theme: cosmo
+---
+
+# Introduction
+
+I will write Introduction, then i will write the GDP growth for global vision
+
+
+## GDP Growth Over Time
+
+This section visualizes GDP growth rates for selected countries, highlighting key crisis years from 1991 to 2024.
+
+```{r gdp-growth-plot, echo=FALSE, message=FALSE, warning=FALSE}
+
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(readxl)
+
+gdp_data <- read_excel("gdp_growth.xlsx")
+
+year_cols <- names(gdp_data)[grepl("^\\d{4}$", names(gdp_data))]
+
+gdp_long <- gdp_data |>
+  pivot_longer(
+    cols = all_of(year_cols),
+    names_to = "year",
+    values_to = "gdp_growth"
+  ) |>
+  mutate(
+    year = as.numeric(year),
+    gdp_growth = as.numeric(gdp_growth)
+  )
+
+crisis_years <- c(1997, 1998, 2001, 2008, 2011.5)
+
+ggplot(gdp_long, aes(x = year, y = gdp_growth, color = `Country Name`)) +
+  geom_line(linewidth = 1) +
+  geom_vline(xintercept = crisis_years, color = "red", linetype = "dashed") + scale_x_continuous(breaks = seq(1991, 2023, by = 2)) + 
+  labs(
+    title = "GDP Growth Over Time with Crisis Periods",
+    x = "Year",
+    y = "GDP Growth (%)",
+    color = "Country"
+  ) +
+  theme_minimal()
+
+```
+
+
+
+# Part 1: Asian Crisis 1997–98
+
+blaablaaa blaaa
+
+## Domestic credit to private sector
+
+```{r credit to private sector-plot, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(stringr)
+
+credit_data <- read_excel("Credit to private sector.xlsx")
+
+year_cols <- names(credit_data)[grepl("^\\d{4}$", names(credit_data))]
+
+
+credit_long <- credit_data |>
+  pivot_longer(
+    cols = all_of(year_cols),
+    names_to = "year",
+    values_to = "credit"
+  ) |>
+  mutate(
+    year = as.numeric(year),
+    credit = as.numeric(credit),
+    `Country Name` = str_trim(str_to_title(`Country Name`))  # clean name
+  ) |>
+  filter(year >= 1985, year <= 2023) |>
+  drop_na(credit)
+
+
+credit_world <- credit_long |> filter(`Country Name` == "World")
+credit_countries <- credit_long |> filter(`Country Name` != "World")
+
+ggplot() +
+  
+  geom_col(
+    data = credit_countries,
+    aes(x = factor(year), y = credit, fill = `Country Name`),
+    position = "dodge"
+  ) +
+  
+  geom_line(
+    data = credit_world,
+    aes(x = factor(year), y = credit, group = 1),
+    color = "red",
+    linewidth = 1.2
+  ) +
+  scale_x_discrete(breaks = as.character(seq(1985, 2023, by = 2))) +
+  labs(
+    title = "Credit to Private Sector (1985–2023)",
+    x = "Year",
+    y = "Credit (% of GDP)",
+    fill = "Country"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```
+
+
+## Official Exchange Rates
+
+```{r Official Exchange rate-plot, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+library(readxl)
+library(ggplot2)
+library(tidyverse)
+
+
+exchange_data <- read_excel("Official Exchange rates.xlsx")
+
+year_cols <- names(exchange_data)[grepl("^\\d{4}$", names(exchange_data))]
+
+exchange_long <- exchange_data %>%
+  pivot_longer(
+    cols = all_of(year_cols),
+    names_to = "year",
+    values_to = "exchange_rate"
+  ) %>%
+  mutate(
+    year = as.numeric(year),
+    exchange_rate = as.numeric(exchange_rate),
+    `Country Name` = str_trim(str_to_title(`Country Name`))
+  ) %>%
+  drop_na(exchange_rate)
+
+selected_countries <- c("Indonesia", "Japan", "Malaysia", "Philippines", "Thailand")
+
+exchange_filtered <- exchange_long %>%
+  filter(
+    `Country Name` %in% selected_countries,
+    year >= 1981,
+    year <= 2003
+  )
+
+ggplot(exchange_filtered, aes(x = year, y = exchange_rate)) +
+  geom_line(color = "steelblue") +
+  geom_vline(xintercept = 1998, color = "red", linetype = "dashed", linewidth = 1)+geom_vline(xintercept = 1997, color = "red", linetype = "dashed", linewidth = 1) +
+  facet_wrap(~`Country Name`, ncol = 2, scales="free_y") +
+  scale_x_continuous(breaks = seq(1981, 2003, by = 3)) +
+  labs(
+    title = "Official Exchange Rate (1975-2005)",
+    subtitle = "With 1997 Asian Crisis Indicator",
+    x = "Year",
+    y = "Exchange Rate (Local Currency per USD)"
+  ) +
+  theme_minimal() +
+  theme(strip.text = element_text(face = "bold"), 
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 8), panel.spacing = unit(1, "lines"))
+
+
+
+
+
+```
+
+## Assian current balance
+
+```{r Assian current balance, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+library(readxl)
+library(tidyverse)
+library(scales)
+library(ggplot2)
+
+data <- read_excel("current account balance.xlsx")
+
+year_cols <- names(data)[grepl("^\\d{4}$", names(data))]
+
+
+data_long <- data |>
+  pivot_longer(
+    cols = all_of(year_cols),
+    names_to = "year",
+    values_to = "current"
+  ) |>
+  mutate(
+    year = as.numeric(year),
+    balance = as.numeric(current),
+    `Country Name` = str_trim(str_to_title(`Country Name`))
+  ) |>
+  drop_na(current)
+
+selected_countries <- c("Indonesia","Malaysia", "Philippines","Thailand")
+
+filtered_data <- data_long |>
+  filter(
+    `Country Name` %in% selected_countries,
+    year >= 1985,
+    year <= 2000
+  )
+
+arrow_data <- filtered_data |>
+  filter(`Country Name` == "Thailand", year %in% c(1987, 1996))
+
+
+ggplot(filtered_data, aes(x = year, y = balance, fill = `Country Name`)) +
+  geom_area(position = "stack", alpha = 0.8) +
+  geom_hline(yintercept = 0, color = "yellow", linewidth = 1) +
+  geom_vline(xintercept = 1997.5, color = "red", linetype = "dashed", linewidth = 1.2) +
+  annotate("segment",
+           x = arrow_data$year[1],   # 1985
+           xend = arrow_data$year[2], 
+           y = arrow_data$balance[1], 
+           yend = arrow_data$balance[2],
+           color = "black",
+           arrow = arrow(length = unit(0.3, "cm"), type = "closed")) +
+  
+  labs(
+    title = "Current Account Balance (1985–2000)",
+    subtitle = "Selected Southeast Asian Countries with 1997 Crisis Marker",
+    x = "Year",
+    y = "BoP",
+    fill = "Country"
+  ) +
+  scale_x_continuous(breaks = seq(1985, 2000, by = 2)) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    strip.text = element_text(face = "bold")
+  ) + scale_y_continuous(labels=label_number(scale = 1e-9, suffix = "B"))
+
+```
+
+### Current Account Balance - Deficits pre-crisis – Table Summary
+
+```{r Assian current balance Table, echo=FALSE,fig.align='center',out.width='80%',message=FALSE, warning=FALSE}
+
+
+library(readxl)
+library(tidyverse)
+library(ggpubr)
+library(ggplot2)
+
+data <- read_excel("current account balance.xlsx")
+
+year_cols <- names(data)[grepl("^\\d{4}$", names(data))]
+
+data_long <- data |>
+  pivot_longer(
+    cols = all_of(year_cols),
+    names_to = "year",
+    values_to = "balance"
+  ) |>
+  mutate(
+    year = as.numeric(year),
+    balance = as.numeric(balance),
+    `Country Name` = str_trim(str_to_title(`Country Name`))
+  ) |>
+  drop_na(balance)
+
+
+countries <- c("Thailand", "Indonesia", "Malaysia", "Philippines")
+
+filtered_data <- data_long |>
+  filter(
+    `Country Name` %in% countries,
+    year >= 1987,
+    year <= 2000
+  )
+
+summary_table <- filtered_data |>
+  group_split(`Country Name`) |>
+  map_dfr(function(df) {
+    country <- unique(df$`Country Name`)
+
+    df_8796 <- df |> filter(year <= 1996)
+    
+    # Trend
+    slope <- coef(lm(balance ~ year, data = df_8796))[2]
+    trend <- ifelse(slope < 0, "⬇️ decreasing", "⬆️ increasing")
+    
+    # Peak deficit year
+    peak_year <- df$year[which.min(df$balance)]
+    
+    # Reversal test
+    value_1996 <- df$balance[df$year == 1996]
+    value_2000 <- df$balance[df$year == 2000]
+    reversed <- ifelse(value_2000 > value_1996, "✅ Yes", "❌ No")
+    
+    # crisis signql
+    crisis_signal <- if (value_1996 < 0 && value_2000 > value_1996) "✅ Yes" else "🟥 No"
+    
+    tibble(
+      Country = country,
+      `Trend (1987–1996)` = trend,
+      `Peak Deficit Year` = peak_year,
+      `Reversal After Crisis` = reversed,
+      `Crisis Signal` = crisis_signal
+    )
+  })
+
+library(knitr)  
+
+knitr::kable(summary_table, caption = "Current Account Crisis Summary Table")
+
+
+summary_table_plot <- summary_table |>
+  mutate(row_text = paste0(
+    "Trend: ", `Trend (1987–1996)`, "\n",
+    "Peak Year: ", `Peak Deficit Year`, "\n",
+    "Reversal: ", `Reversal After Crisis`, "\n",
+    "Crisis Signal: ", `Crisis Signal`
+  ))
+
+```
+
+Comment about table and conclusion
+
+
+# Global Crisis 2008
+
+
+
+```{r Credit non financial sector, echo=FALSE,fig.align='center',out.width='80%',message=FALSE, warning=FALSE}
+
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(gganimate)
+library(lubridate)
+library(gifski)
+
+credit_data <- read_excel("credit non financial sector.xlsx") |>
+  rename(
+    period = 1,
+    credit = 2
+  ) |>
+  mutate(
+    period = as.Date(period),
+    credit = as.numeric(credit)
+  ) |>
+  arrange(period) |>
+  filter(!is.na(period), !is.na(credit))
+
+#########
+p <- ggplot(credit_data, aes(x = period, y = credit)) +
+  geom_line(color = "steelblue", linewidth = 1.2) +
+  geom_point(color = "steelblue", size = 1.8) +
+  labs(
+    title = "Credit to Non-Financial Sector",
+    subtitle = "Animated with 2008 Crisis Marker",
+    x = "Period",
+    y = "Quarter-over-Quarter Change (%)"
+  ) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  geom_vline(xintercept = as.Date("2008-09-30"), color = "red", linetype = "dashed", linewidth = 1)
+
+
+animated_plot <- p + transition_reveal(period) + labs(
+  title = 'Credit Non Financial Sector',
+  subtitle = 'Animated with 2008 Crisis Marker')
+
+
+animate(animated_plot, fps = 10, width=800, heigh= 500, renderer= gifski_renderer())
+
+anim_save(animated_plot, filename= "credit non financial sector.gif", nframes= 200, fps = 10, width= 800, height= 600, renderer= gifski_renderer())
+
+
+
+```
+
+
+Comment about table and conclusion
+
+
+# Global Crisis 2008
+
+
+
+
+
+## Current Account Balance
+
+## Credit to Non-Financial Sector
+
+# Conclusion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
